@@ -68,6 +68,28 @@ button{cursor:pointer}
 .ps.met{border-color:var(--c3)}
 .ps.met .goal{color:var(--c3)}
 .fb.met{background:var(--c3);border-color:var(--c3);color:var(--on-accent)}
+.pmr{display:flex;flex-wrap:wrap;gap:.4rem;margin:-.2rem 0 .7rem}
+.pmr select,.pmr input{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.3rem .5rem;font-size:.85rem;color:var(--ink)}
+.pmr select.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.pmr input{flex:1;min-width:8rem}
+.pmr input[hidden]{display:none}
+.shl{display:inline-flex;align-items:center;gap:.35rem;font-size:.85rem;color:var(--muted)}
+#plist{margin-top:.8rem}
+#plist h3{font-size:.9rem;margin:0 0 .3rem;color:var(--muted);font-weight:600}
+.phh{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left}
+.phh[aria-expanded="true"]::after{content:" \25BE"}
+.phh[aria-expanded="false"]::after{content:" \25B8"}
+.prow{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .6rem;padding:.4rem 0;border-top:1px solid var(--line)}
+.prow strong{font-weight:650}
+.phd{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .6rem;flex-basis:100%;background:none;border:0;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.prow.off{opacity:.5}
+.prow.off strong{text-decoration:line-through}
+.pav{flex-basis:100%;display:flex;flex-wrap:wrap;gap:.1rem .9rem;color:var(--muted);font-size:.85rem}
+.pav strong{color:var(--ink)}
+.pavl{font-weight:600}
+.dot{display:inline-block;width:.65rem;height:.65rem;border-radius:50%;margin-right:.4rem}
+.prow .pd{color:var(--muted);font-size:.85rem}
+.prow .pr{margin-left:auto;color:var(--accent);font-weight:650}
 .note[hidden]{display:none}
 .note input[type=text]{width:100%;box-sizing:border-box}
 .sup{background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:.4rem .75rem .5rem}
@@ -124,10 +146,12 @@ textarea{width:100%;box-sizing:border-box;height:6rem;margin:.6rem 0;color:var(-
     <select id="rng" aria-label="Chart range"><option value="7">Last 7 days</option><option value="14" selected>Last 14 days</option><option value="30">Last 30 days</option><option value="all">All days</option></select>
   </div>
   <div class="cc"><div class="seg" role="group" aria-label="Chart type"><button id="cs" aria-pressed="true">Sugar</button><button id="cm" aria-pressed="false">Measurements</button></div>
-  <select id="mitem" hidden aria-label="Measurement to chart"><option value="weight">Weight</option><option value="waist">Waist</option><option value="bf">Body fat</option><option value="lg">Left grip strength</option><option value="rg">Right grip strength</option><option value="bp">Blood pressure</option><option value="hr">Heart rate</option></select></div>
+  <select id="mitem" hidden aria-label="Measurement to chart"><option value="weight">Weight</option><option value="waist">Waist</option><option value="bf">Body fat</option><option value="lg">Left grip strength</option><option value="rg">Right grip strength</option><option value="bp">Blood pressure</option><option value="hr">Heart rate</option></select>
+  <label class="shl"><input type="checkbox" id="shade" checked> Shade periods</label></div>
   <div id="chart"></div>
   <div id="readout" role="status"></div>
   <div class="lgd" id="legend"></div>
+  <div id="plist"></div>
 </section>
 <div class="add">
   <input type="date" id="nd" aria-label="Date to add">
@@ -238,7 +262,7 @@ function save(){
 function render(){
   entries.sort(function(a,b){return a.date<b.date?1:-1});
   list.innerHTML=entries.map(function(e){
-    return '<section class="day" data-date="'+e.date+'"><div class="dh"><h2>'+fmt(e.date)+'</h2><button class="del" data-del>Delete day</button></div><div class="slots">'+
+    return '<section class="day" data-date="'+e.date+'"><div class="dh"><h2>'+fmt(e.date)+'</h2><button class="del" data-del>Delete day</button></div>'+pmRow(e)+'<div class="slots">'+
     SLOTS.map(function(s){
       var k=s[0],id=e.date+"-"+k,val=(e.v&&e.v[k])||"",tm=(e.t&&e.t[k])||"",hid=!(ui.ex&&ui.ex[id]),btns="",panels="";
       NOTES.forEach(function(n){
@@ -380,7 +404,7 @@ document.getElementById("rest").addEventListener("click",function(){
     var n=0;
     a.forEach(function(x){
       if(!x||!/^\d{4}-\d{2}-\d{2}$/.test(x.date))return;
-      var item={date:x.date,v:(x.v&&typeof x.v==="object")?x.v:{},f:(x.f&&typeof x.f==="object")?x.f:{},t:(x.t&&typeof x.t==="object")?x.t:{},w:(x.w&&typeof x.w==="object")?x.w:{},x:(x.x&&typeof x.x==="object")?x.x:{},s:(x.s&&typeof x.s==="object")?x.s:{},m:(x.m&&typeof x.m==="object")?x.m:{},p:(x.p&&typeof x.p==="object")?x.p:{}},old=find(x.date);
+      var item={date:x.date,v:(x.v&&typeof x.v==="object")?x.v:{},f:(x.f&&typeof x.f==="object")?x.f:{},t:(x.t&&typeof x.t==="object")?x.t:{},w:(x.w&&typeof x.w==="object")?x.w:{},x:(x.x&&typeof x.x==="object")?x.x:{},s:(x.s&&typeof x.s==="object")?x.s:{},m:(x.m&&typeof x.m==="object")?x.m:{},p:(x.p&&typeof x.p==="object")?x.p:{},pm:(x.pm==="s"||x.pm==="e")?x.pm:"",pl:typeof x.pl==="string"?x.pl:""},old=find(x.date);
       if(old)entries[entries.indexOf(old)]=item;else entries.push(item);
       n++;
     });
@@ -426,7 +450,48 @@ legend.addEventListener("click",function(ev){var b=ev.target.closest("button");i
 document.getElementById("rng").addEventListener("change",function(ev){rng=ev.target.value;drawChart()});
 window.addEventListener("resize",drawChart);
 
+function pmRow(e){
+  var m=e.pm||"";
+  return '<div class="pmr"><select data-pm class="'+(m?'on':'')+'" aria-label="Mark this day as the start or end of a period"><option value="">Mark period\u2026</option><option value="s"'+(m==="s"?' selected':'')+'>First day of period</option><option value="e"'+(m==="e"?' selected':'')+'>Last day of period</option></select>'+
+    '<input type="text" data-pl placeholder="Name, e.g. 7-day fast" aria-label="Period name" value="'+esc(e.pl||"")+'"'+(m==="s"?'':' hidden')+'></div>';
+}
+function periods(){
+  var es=entries.slice().sort(function(a,b){return a.date<b.date?-1:1}),out=[],cur=null,prev="",last=es.length?es[es.length-1].date:"";
+  es.forEach(function(e){
+    if(e.pm==="s"){if(cur){cur.e=prev||cur.s;out.push(cur)}cur={s:e.date,e:"",n:e.pl||"",open:false}}
+    else if(e.pm==="e"&&cur){cur.e=e.date;out.push(cur);cur=null}
+    prev=e.date;
+  });
+  if(cur){cur.e=last;cur.open=true;out.push(cur)}
+  return out;
+}
+function shorten(t,n){return t.length>n?t.slice(0,Math.max(1,n-1))+"\u2026":t}
+function periodNote(r){
+  var n=dn(r.date),p=periods().filter(function(q){return !ui.hall&&!(ui.hp&&ui.hp[q.s])&&dn(q.s)<=n&&n<=dn(q.e)})[0];
+  return p?'<span class="ro">Period: '+esc(p.n||"unnamed")+' ('+shortD(p.s)+(p.open?' onwards':' to '+shortD(p.e))+', '+(dn(p.e)-dn(p.s)+1)+(p.open?' days so far)</span>':' days)</span>'):"";
+}
+function dY(s){var a=s.split("-");return new Date(+a[0],a[1]-1,+a[2]).toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"})}
+function avgLine(p){
+  var parts=[];
+  sdef().forEach(function(d){
+    var sum=0,c=0;
+    entries.forEach(function(e){if(e.date>=p.s&&e.date<=p.e){var v=d.get(e);if(isFinite(v)){sum+=v;c++}}});
+    if(c)parts.push('<span>'+esc(d.label)+' <strong>'+r1(sum/c)+'</strong></span>');
+  });
+  return parts.length?'<div class="pav"><span class="pavl">Average'+(ctype==="sugar"?' (mmol/L)':'')+'</span>'+parts.join("")+'</div>':'<div class="pav">No readings in this period</div>';
+}
+function drawPeriods(){
+  var PD=periods(),box=document.getElementById("plist");
+  if(!PD.length){box.innerHTML="";return}
+  if(ui.hall){box.innerHTML='<h3><button class="phh" data-pall aria-expanded="false">Periods hidden ('+PD.length+'), tap to show</button></h3>';return}
+  box.innerHTML='<h3><button class="phh" data-pall aria-expanded="true">Periods (tap to hide all)</button></h3>'+PD.slice().reverse().map(function(p,i){
+    var n=dn(p.e)-dn(p.s)+1,col=(PD.length-1-i)%2?"var(--c3)":"var(--accent)";
+    var off=ui.hp&&ui.hp[p.s];
+    return '<div class="prow'+(off?' off':'')+'"><button class="phd" data-pk="'+p.s+'" aria-pressed="'+!off+'" aria-label="Show or hide this period on the chart"><strong><i class="dot" style="background:'+col+'"></i>'+esc(p.n||"Unnamed period")+'</strong>'+(off?'<span class="pd">Hidden, tap to show</span></button></div>':'<span class="pd">'+dY(p.s)+(p.open?' onwards':' to '+dY(p.e))+'</span><span class="pr" style="color:'+col+'">'+n+(n===1?' day':' days')+(p.open?' so far':'')+'</span></button>'+avgLine(p)+'</div>');
+  }).join("");
+}
 function drawChart(){
+  drawPeriods();
   var W=chartEl.clientWidth||320,H=230,L=34,R=14,T=10,B=26,
   rows=entries.slice().sort(function(a,b){return a.date<b.date?-1:1});
   if(rng!=="all"){var cut=dn(today())-(+rng-1);rows=rows.filter(function(r){return dn(r.date)>=cut})}
@@ -443,6 +508,31 @@ function drawChart(){
   function xp(r){return x1===x0?(pl+pr)/2:pl+(dn(r.date)-x0)/(x1-x0)*(pr-pl)}
   function yp(n){return T+(hi-n)/(hi-lo)*(H-T-B)}
   var s='<svg width="'+W+'" height="'+H+'" role="img" aria-label="Line chart of readings by day">';
+  var PD=periods(),d0=x0,d1=x1,dw=x1===x0?40:(pr-pl)/(x1-x0),pad=Math.min(dw/2,14),shade=!ui.noshade;
+  function xn(n){return x1===x0?(pl+pr)/2:pl+(n-x0)/(x1-x0)*(pr-pl)}
+  PD.forEach(function(p,pi){
+    if(ui.hall||(ui.hp&&ui.hp[p.s]))return;
+    var ps=dn(p.s),pe=dn(p.e);
+    if(pe<d0||ps>d1)return;
+    var cs=Math.max(ps,d0),ce=Math.min(pe,d1),bx0=Math.max(L,xn(cs)-pad),bx1=Math.min(W-R,xn(ce)+pad),bw=bx1-bx0,
+    sl=ps>=d0?(bw>=150?"Start "+shortD(p.s):"Start"):"",
+    el=pe<=d1?(p.open?"Ongoing":(bw>=150?"End "+shortD(p.e):"End")):"",
+    nm=p.n||"Period",dur=dn(p.e)-dn(p.s)+1,ln=function(x){return '<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+T+'" y2="'+(H-B)+'" stroke-width="1.5" stroke-dasharray="4 3" style="stroke:var(--accent)"/>'};
+    if(pi%2)s+='<g style="--accent:var(--c3)">';
+    if(shade)s+='<rect x="'+bx0.toFixed(1)+'" y="'+T+'" width="'+bw.toFixed(1)+'" height="'+(H-T-B)+'" style="fill:var(--accent);opacity:.14"/>';
+    if(ps>=d0)s+=ln(bx0);
+    if(pe<=d1&&!p.open)s+=ln(bx1);
+    if(bw>=110){
+      if(sl)s+='<text x="'+(bx0+4).toFixed(1)+'" y="'+(T+12)+'" font-size="10" style="fill:var(--accent)">'+esc(sl)+'</text>';
+      if(el)s+='<text x="'+(bx1-4).toFixed(1)+'" y="'+(T+12)+'" text-anchor="end" font-size="10" style="fill:var(--accent)">'+esc(el)+'</text>';
+      s+='<text x="'+((bx0+bx1)/2).toFixed(1)+'" y="'+(T+25)+'" text-anchor="middle" font-size="11" font-weight="600" style="fill:var(--accent)">'+esc(shorten(nm,Math.floor((bw-12)/6.5)))+'</text>';
+      s+='<text x="'+((bx0+bx1)/2).toFixed(1)+'" y="'+(T+38)+'" text-anchor="middle" font-size="10" style="fill:var(--accent)">'+dur+(dur===1?' day':' days')+(p.open?' so far':'')+'</text>';
+    }else if(bw>=50){
+      s+='<text x="'+((bx0+bx1)/2).toFixed(1)+'" y="'+(T+12)+'" text-anchor="middle" font-size="10" style="fill:var(--accent)">'+esc(shorten(nm,Math.floor((bw-6)/6)))+'</text>';
+      s+='<text x="'+((bx0+bx1)/2).toFixed(1)+'" y="'+(T+24)+'" text-anchor="middle" font-size="10" style="fill:var(--accent)">'+dur+'d</text>';
+    }
+    if(pi%2)s+='</g>';
+  });
   for(var g=lo;g<=hi;g+=step){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yp(g)+'" y2="'+yp(g)+'" style="stroke:var(--line)"/><text x="'+(L-6)+'" y="'+(yp(g)+4)+'" text-anchor="end" font-size="11" style="fill:var(--muted)">'+g+'</text>'}
   var every=Math.ceil(rows.length/Math.max(2,Math.floor((W-L-R)/64)));
   rows.forEach(function(r,i){if(i%every===0)s+='<text x="'+xp(r).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" style="fill:var(--muted)">'+shortD(r.date)+'</text>'});
@@ -460,11 +550,36 @@ function drawChart(){
     var x=ev.clientX-chartEl.getBoundingClientRect().left,best=rows[0],bd=1e9;
     rows.forEach(function(r){var d=Math.abs(xp(r)-x);if(d<bd){bd=d;best=r}});
     gl.setAttribute("x1",xp(best));gl.setAttribute("x2",xp(best));gl.setAttribute("visibility","visible");
-    readout.innerHTML='<strong>'+fmt(best.date)+'</strong>'+SD.map(function(d,i){var n=d.get(best);return !isFinite(n)?"":'<span class="ro"><i style="background:var(--c'+(i+1)+')"></i>'+d.label+' '+n+(d.time&&best.t&&best.t[d.time]?' at '+tfmt(best.t[d.time]):'')+'</span>'}).join("");
+    readout.innerHTML='<strong>'+fmt(best.date)+'</strong>'+SD.map(function(d,i){var n=d.get(best);return !isFinite(n)?"":'<span class="ro"><i style="background:var(--c'+(i+1)+')"></i>'+d.label+' '+n+(d.time&&best.t&&best.t[d.time]?' at '+tfmt(best.t[d.time]):'')+'</span>'}).join("")+periodNote(best);
   }
   ov.addEventListener("pointermove",pick);ov.addEventListener("pointerdown",pick);
   readout.textContent="Hover or tap the chart to see a day\u2019s readings.";
 }
+
+list.addEventListener("input",function(ev){
+  var t=ev.target;
+  if(!t.hasAttribute("data-pm")&&!t.hasAttribute("data-pl"))return;
+  var e=find(t.closest(".day").dataset.date);
+  if(!e)return;
+  if(t.hasAttribute("data-pm")){
+    e.pm=t.value;if(!e.pm)delete e.pm;
+    t.parentNode.querySelector("[data-pl]").hidden=(t.value!=="s");
+    t.classList.toggle("on",!!t.value);
+  }else{e.pl=t.value}
+  save();drawChart();
+});
+document.getElementById("plist").addEventListener("click",function(ev){
+  var a=ev.target.closest("[data-pall]");
+  if(a){if(ui.hall)delete ui.hall;else ui.hall=1;saveUi();drawChart();return}
+  var b=ev.target.closest("[data-pk]");
+  if(!b)return;
+  var k=b.dataset.pk;ui.hp=ui.hp||{};
+  if(ui.hp[k])delete ui.hp[k];else ui.hp[k]=1;
+  saveUi();drawChart();
+});
+var shadeEl=document.getElementById("shade");
+shadeEl.checked=!ui.noshade;
+shadeEl.addEventListener("change",function(){if(shadeEl.checked)delete ui.noshade;else ui.noshade=1;saveUi();drawChart()});
 
 var clr=document.getElementById("clr"),sure=document.getElementById("sure");
 function askClear(on){sure.hidden=!on;clr.hidden=on;if(on)document.getElementById("no").focus();else clr.focus()}
